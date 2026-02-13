@@ -1,0 +1,151 @@
+#include <WiFi.h>
+#include <EEPROM.h>
+#include <WiFiClient.h>
+#include <TelnetStream.h>
+#include <ArduinoOTA.h>
+
+#define EEPROM_SIZE 512
+#define AP_PASSWORD "firmensecret" // Passwort für den Access Point
+
+String ssid = "";
+String password = "";
+String customName = ""; // Optionaler benutzerdefinierter Name
+
+unsigned long lastActivity = 0;
+const unsigned long autoRebootInterval = 5 * 60 * 1000; // 5 Minuten
+
+void startAP() {
+  String apSSID = customName.isEmpty() ? "ESP_" + WiFi.macAddress() : customName;
+  WiFi.softAP(apSSID.c_str(), AP_PASSWORD);
+  Serial.println("Access Point gestartet: " + apSSID);
+  TelnetStream.println("Access Point gestartet: " + apSSID);
+}
+
+void connectToWiFi() {
+  if (ssid.length() > 0) {
+    WiFi.begin(ssid.c_str(), password.c_str());
+    unsigned long startAttemptTime = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 60000) {
+      delay(500);
+      Serial.print(".");
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("Verbunden mit: " + ssid);
+      TelnetStream.println("Verbunden mit: " + ssid);
+    } else {
+      Serial.println("Verbindung fehlgeschlagen.");
+      TelnetStream.println("Verbindung fehlgeschlagen.");
+      startAP();
+    }
+  } else {
+    startAP();
+  }
+}
+
+void setupOTA() {
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_SPIFFS
+      type = "filesystem";
+    }
+    Serial.println("OTA Update Start: " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("OTA Update abgeschlossen.");
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("OTA Fehler [%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Authentifizierungsfehler");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin-Fehler");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Verbindungsfehler");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Empfangsfehler");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End-Fehler");
+    }
+  });
+  ArduinoOTA.begin();
+  Serial.println("OTA bereit.");
+}
+
+void processCommand(String command) {
+  if (command.startsWith("setwlan")) {
+    int firstQuote = command.indexOf('"');
+    int secondQuote = command.indexOf('"', firstQuote + 1);
+    int thirdQuote = command.indexOf('"', secondQuote + 1);
+    int fourthQuote = command.indexOf('"', thirdQuote + 1);
+
+    if (firstQuote != -1 && secondQuote != -1 && thirdQuote != -1 && fourthQuote != -1) {
+      ssid = command.substring(firstQuote + 1, secondQuote);
+      password = command.substring(thirdQuote + 1, fourthQuote);
+      EEPROM.writeString(0, ssid);
+      EEPROM.writeString(100, password);
+      EEPROM.commit();
+      Serial.println("SSID und Passwort gespeichert.");
+      TelnetStream.println("SSID und Passwort gespeichert.");
+    } else {
+      Serial.println("Ungültige Parameter für setwlan.");
+      TelnetStream.println("Ungültige Parameter für setwlan.");
+    }
+  } else if (command.startsWith("setname")) {
+    int firstQuote = command.indexOf('"');
+    int secondQuote = command.indexOf('"', firstQuote + 1);
+
+    if (firstQuote != -1 && secondQuote != -1) {
+      customName = command.substring(firstQuote + 1, secondQuote);
+      EEPROM.writeString(200, customName);
+      EEPROM.commit();
+      Serial.println("Name gespeichert: " + customName);
+      TelnetStream.println("Name gespeichert: " + customName);
+    } else {
+      Serial.println("Ungültige Parameter für setname.");
+      TelnetStream.println("Ungültige Parameter für setname.");
+    }
+  } else if (command.startsWith("reboot")) {
+    Serial.println("Reboot wird durchgeführt.");
+    TelnetStream.println("Reboot wird durchgeführt.");
+    delay(1000);
+    ESP.restart();
+  } else {
+    Serial.println("Unbekanntes Kommando: " + command);
+    TelnetStream.println("Unbekanntes Kommando: " + command);
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  EEPROM.begin(EEPROM_SIZE);
+
+  ssid = EEPROM.readString(0);
+  password = EEPROM.readString(100);
+  customName = EEPROM.readString(200);
+
+  WiFi.mode(WIFI_AP_STA);
+  TelnetStream.begin();
+  setupOTA();
+  connectToWiFi();
+}
+
+void loop() {
+  ArduinoOTA.handle();
+
+  if (TelnetStream.available()) {
+    String command = TelnetStream.readStringUntil('\n');
+    command.trim();
+    processCommand(command);
+    lastActivity = millis();
+  }
+
+  if (millis() - lastActivity > autoRebootInterval) {
+    Serial.println("Automatischer Neustart nach Inaktivität.");
+    TelnetStream.println("Automatischer Neustart nach Inaktivität.");
+    delay(1000);
+    ESP.restart();
+  }
+}
+

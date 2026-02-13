@@ -1,0 +1,130 @@
+ard 0001
+swr 0002
+wdr 0003
+sr_alt 0004
+br 0005
+ndr 0006
+mdr 0007
+hr_alt 0010
+swr 0012
+flensburg 0015
+123tv 0034
+bbc 0036
+tv5 0037
+nitro 00348
+tlc 0039
+toggo 0040
+channel21 0041
+shop lc 0042
+hse 0043
+hopetv 0044
+cnn 0045
+juwelotv 0046
+df1_TOT 0047
+euronews 0048
+tagesschau24 0074
+alpha 0075
+sr 0076
+one 0080
+qvcstyle 0082
+123tv 0085
+qvc2 0086
+sonnenklartv 0089
+hseextra 0092
+arte 0095
+hr 0096
+shoplc 0099
+sixx 0114
+tele5 0115
+eurosport1 0116
+pro7 0117
+kabeleins 0118
+welt 0119
+rbb 0120
+zdf 0121
+zdfinfo 0122
+3sat_alt 0124
+kika_alt 0125
+zdfneo_alt 0127
+ndr_fs_hh 0128
+ndr fs_sh 0129
+tv2 0133
+sylt1 0134
+dr1 0135
+anixe 0136
+rtl 0138
+sat1 0139
+phoenix 0140
+zdfneo 0141
+kika 0142
+
+df1 0161
+hse 0162
+qvc 0163
+
+hgtv 0182
+nick 0184
+n24doku 0186
+cgtn 0187
+k-tv 0188
+comedy-central 0189
+dmax 0191
+voxup 0192
+
+hse_alt 0193
+
+disney-channel 0194
+
+mtv 0196
+dokusat 0197
+rtlup 0198
+
+schlager-deluxe 0199
+bibel_tv 0200
+
+
+super_rtl 0201
+rtl2 0202
+vox 0203
+ntv 0204
+
+sonnenklar_lt 0206
+
+sport1 0207
+3sat 0219
+
+kabel1doku 0221
+qvc2 0222
+
+hse_extra 0223
+
+prosieben_maxx 0224
+
+sonlife 0225
+
+dmf 0226
+deluxe_music 0228
+sat1_gold 0229
+
+astro_tv 0230
+cnbc_europe 0241
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
